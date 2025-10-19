@@ -8,6 +8,7 @@ import java.util.List;
 
 @Data
 @Component
+@ConfigurationProperties("result")
 public class ResultProperties {
 
 }

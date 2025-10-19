@@ -23,18 +23,40 @@ public class BeanMap extends BeanUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(BeanMap.class);
 
 
-   /**
-    * 将源对象转换为目标对象
-    * 此方法使用泛型来提高代码的复用性，并允许在转换过程中进行自定义异常处理
-    *
-    * @param <S> 源对象的类型
-    * @param <T> 目标对象的类型
-    * @param source 源对象实例，不能为空
-    * @param targetSupplier 一个Supplier函数式接口实例，用于创建目标对象，不能为空
-    * @return 转换后的目标对象实例
-    * @throws IllegalArgumentException 如果源对象或目标对象供应商为null，则抛出此异常
-    * @throws CommonException 如果转换过程中发生异常，则抛出此自定义异常
-    */
+    /**
+     * 将源对象转换为目标对象。
+     * 此方法使用泛型来提高代码的复用性，并允许在转换过程中进行自定义异常处理。
+     *
+     * @param <S> 源对象的类型。
+     * @param <T> 目标对象的类型。
+     * @param source 源对象实例，必须有效且不可为空。
+     * @param targetSupplier 一个 Supplier 函数式接口实例，用于创建目标对象，必须有效且不可为空。
+     * @return 转换后的目标对象实例。
+     * @throws IllegalArgumentException 如果源对象或目标对象供应商为 null，则抛出此异常。
+     * @throws CommonException 如果转换过程中发生异常，则抛出此自定义异常。
+     *
+     * <pre>{@code
+     * // 正常使用示例：将User对象转换为UserDTO对象
+     * User user = new User("John", "Doe");
+     * UserDTO userDTO = BeanMap.convertTo(user, UserDTO::new);
+     *
+     * // 参数校验失败示例（源对象为空）
+     * try {
+     *     BeanMap.convertTo(null, UserDTO::new);
+     * } catch (IllegalArgumentException e) {
+     *     System.out.println(e.getMessage());
+     *     // 输出"Source 和 targetSupplier 不能为空"
+     * }
+     *
+     * // 参数校验失败示例（目标对象供应商为空）
+     * try {
+     *     BeanMap.convertTo(user, null);
+     * } catch (IllegalArgumentException e) {
+     *     System.out.println(e.getMessage());
+     *     // 输出"Source 和 targetSupplier 不能为空"
+     * }
+     * }</pre>
+     */
    public static <S, T> T convertTo(S source, Supplier<T> targetSupplier) {
        // 检查源对象和目标对象供应商是否为空，如果任一为空，则抛出非法参数异常
        if (source == null || targetSupplier == null) {
@@ -49,68 +71,101 @@ public class BeanMap extends BeanUtils {
        }
    }
 
-
-
-
     /**
-     * 将源对象转换为目标对象，并通过回调函数进行额外处理
+     * 将源对象转换为目标对象，并通过回调函数进行额外处理。
+     * 此方法使用泛型来提高代码的复用性，并允许在转换过程中进行自定义异常处理。
      *
-     * @param <S> 源对象类型
-     * @param <T> 目标对象类型
-     * @param source 源对象实例
-     * @param targetSupplier 目标对象的供应者，用于创建目标对象实例
-     * @param callBack 转换后的回调函数，用于执行额外的处理逻辑
-     * @return 转换后的目标对象实例，如果转换失败则返回null
+     * @param <S> 源对象的类型。
+     * @param <T> 目标对象的类型。
+     * @param source 源对象实例，必须有效且不可为空。
+     * @param targetSupplier 一个 Supplier 函数式接口实例，用于创建目标对象，必须有效且不可为空。
+     * @param callBack 转换后的回调函数，用于执行额外的处理逻辑。如果不需要额外处理，可以传入 null。
+     * @return 转换后的目标对象实例。如果转换过程中发生异常，则返回 null。
+     * @throws IllegalArgumentException 如果源对象或目标对象供应商为 null，则抛出此异常。
+     *
+     * <pre>{@code
+     * // 正常使用示例：将User对象转换为UserDTO对象，并执行回调函数
+     * User user = new User("John", "Doe");
+     * UserDTO userDTO = BeanMap.convertTo(user, UserDTO::new, (src, tgt) -> tgt.setFullName(src.getFirstName() + " " + src.getLastName()));
+     *
+     * // 回调函数为空的场景
+     * UserDTO userDTOWithoutCallback = BeanMap.convertTo(user, UserDTO::new, null);
+     *
+     * // 参数校验失败示例（源对象为空）
+     * try {
+     *     BeanMap.convertTo(null, UserDTO::new, (src, tgt) -> tgt.setFullName(src.getFirstName() + " " + src.getLastName()));
+     * } catch (IllegalArgumentException e) {
+     *     System.out.println(e.getMessage());
+     *     // 输出"源或目标为空"
+     * }
+     *
+     * // 参数校验失败示例（目标对象供应商为空）
+     * try {
+     *     BeanMap.convertTo(user, null, (src, tgt) -> tgt.setFullName(src.getFirstName() + " " + src.getLastName()));
+     * } catch (IllegalArgumentException e) {
+     *     System.out.println(e.getMessage());
+     *     // 输出"源或目标为空"
+     * }
+     * }</pre>
      */
     public static <S, T> T convertTo(S source, Supplier<T> targetSupplier, ConvertCallBack<S, T> callBack) {
-        // 检查输入参数是否为 null
         if (source == null || targetSupplier == null) {
-            // 记录日志或抛出自定义异常
-            LOGGER.error("源或目标为空");
-            return null;
+            throw new IllegalArgumentException("源或目标为空");
         }
 
-        // 使用目标对象的供应者创建一个新的目标对象实例
         T target = targetSupplier.get();
 
         try {
-            // 复制属性
             copyProperties(source, target);
         } catch (Exception e) {
-            // 记录异常信息
-            LOGGER.error("复制属性错误: " + e.getMessage());
+            LOGGER.error("复制属性错误: {}", e.getMessage(), e);
             return null;
         }
 
-        // 如果回调函数不为空，则执行回调函数进行额外处理
         if (callBack != null) {
             try {
-                // 执行回调函数
                 callBack.callBack(source, target);
             } catch (Exception e) {
-                // 记录异常信息
-                LOGGER.error("回调错误: " + e.getMessage());
+                LOGGER.error("回调错误: {}", e.getMessage(), e);
             }
-        } else {
-            // 回调为空时记录日志
-            LOGGER.info("回调为空，不执行其他处理");
         }
 
-        // 返回转换后的目标对象实例
         return target;
     }
 
-        /**
+
+    /**
      * 将源对象列表转换为目标对象列表。
-     * 该方法使用供应商来创建目标类型的实例，从而实现对象的转换。
+     * 此方法使用泛型来提高代码的复用性，并允许在转换过程中进行自定义异常处理。
      *
-     * @param <S> 源对象的类型
-     * @param <T> 目标对象的类型
-     * @param sources 源对象列表，将被转换为目标对象
-     * @param targetSupplier 目标对象的供应商，用于生成新的目标对象实例
-     * @return 转换后的目标对象列表
+     * @param <S> 源对象的类型。
+     * @param <T> 目标对象的类型。
+     * @param sources 源对象列表，必须有效且不可为空。
+     * @param targetSupplier 一个 Supplier 函数式接口实例，用于创建目标对象，必须有效且不可为空。
+     * @return 转换后的目标对象列表。
+     * @throws CommonException 如果源列表或目标对象供应商为 null，则抛出此自定义异常。
      *
-     * @throws IllegalArgumentException 如果源列表或目标供应商为 null，表示输入无效
+     * <pre>{@code
+     * // 正常使用示例：将User对象列表转换为UserDTO对象列表
+     * List<User> users = Arrays.asList(new User("John", "Doe"), new User("Jane", "Smith"));
+     * List<UserDTO> userDTOs = BeanMap.convertListTo(users, UserDTO::new);
+     *
+     * // 参数校验失败示例（源列表为空）
+     * try {
+     *     BeanMap.convertListTo(null, UserDTO::new);
+     * } catch (CommonException e) {
+     *     System.out.println(e.getMessage());
+     *     // 输出"源列表不能为空"
+     * }
+     *
+     * // 参数校验失败示例（目标对象供应商为空）
+     * try {
+     *     BeanMap.convertListTo(users, null);
+     * } catch (CommonException e) {
+     *     System.out.println(e.getMessage());
+     *     // 输出"目标不能为空"
+     * }
+     * }</pre>
      */
     public static <S, T> List<T> convertListTo(List<S> sources, Supplier<T> targetSupplier) {
         // 检查源列表是否为 null，如果是则抛出异常
@@ -125,17 +180,42 @@ public class BeanMap extends BeanUtils {
         return convertListTo(sources, targetSupplier, null);
     }
 
-
-
     /**
-     * 将源列表转换为目标列表
+     * 将源对象列表转换为目标对象列表，并通过回调函数进行额外处理。
+     * 此方法使用泛型来提高代码的复用性，并允许在转换过程中进行自定义异常处理。
      *
-     * @param <S> 源对象类型
-     * @param <T> 目标对象类型
-     * @param sources 源列表
-     * @param targetSupplier 目标对象的供应者
-     * @param callBack 转换过程中的回调接口，用于执行额外操作
-     * @return 转换后的目标列表
+     * @param <S> 源对象的类型。
+     * @param <T> 目标对象的类型。
+     * @param sources 源对象列表，必须有效且不可为空。
+     * @param targetSupplier 一个 Supplier 函数式接口实例，用于创建目标对象，必须有效且不可为空。
+     * @param callBack 转换过程中的回调接口，用于执行额外操作。如果不需要额外处理，可以传入 null。
+     * @return 转换后的目标对象列表。如果转换过程中发生异常，则返回空列表。
+     * @throws CommonException 如果源列表或目标对象供应商为 null，则抛出此自定义异常。
+     *
+     * <pre>{@code
+     * // 正常使用示例：将User对象列表转换为UserDTO对象列表，并执行回调函数
+     * List<User> users = Arrays.asList(new User("John", "Doe"), new User("Jane", "Smith"));
+     * List<UserDTO> userDTOs = BeanMap.convertListTo(users, UserDTO::new, (src, tgt) -> tgt.setFullName(src.getFirstName() + " " + src.getLastName()));
+     *
+     * // 回调函数为空的场景
+     * List<UserDTO> userDTOsWithoutCallback = BeanMap.convertListTo(users, UserDTO::new, null);
+     *
+     * // 参数校验失败示例（源列表为空）
+     * try {
+     *     BeanMap.convertListTo(null, UserDTO::new, (src, tgt) -> tgt.setFullName(src.getFirstName() + " " + src.getLastName()));
+     * } catch (CommonException e) {
+     *     System.out.println(e.getMessage());
+     *     // 输出"源列表不能为空"
+     * }
+     *
+     * // 参数校验失败示例（目标对象供应商为空）
+     * try {
+     *     BeanMap.convertListTo(users, null, (src, tgt) -> tgt.setFullName(src.getFirstName() + " " + src.getLastName()));
+     * } catch (CommonException e) {
+     *     System.out.println(e.getMessage());
+     *     // 输出"目标不能为空"
+     * }
+     * }</pre>
      */
     public static <S, T> List<T> convertListTo(List<S> sources, Supplier<T> targetSupplier, ConvertCallBack<S, T> callBack)  {
         // 检查输入参数是否为空

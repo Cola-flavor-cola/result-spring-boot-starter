@@ -1,7 +1,7 @@
 package com.lby.result.utils;
 
-import cn.hutool.core.codec.Base64;
 import cn.hutool.core.codec.*;
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.HashUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.lby.result.exception.CommonException;
@@ -17,10 +17,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.Function;
 
-/**
- * 加密工具类，提供了一系列加密相关的方法
- * 该类主要用于对数据进行加密处理，提供了不同的加密算法和模式供选择
- */
+
 public class SecurityUtil {
 
     // 创建一个ForkJoinPool，用于执行并行操作
@@ -35,104 +32,152 @@ public class SecurityUtil {
     // 使用 SecureRandom 生成安全的随机数，主要用于加密或安全相关的操作，确保随机性足够高
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    // 初始化操作类型与处理函数的映射关系
+
+    /**
+     * 这个静态代码块用于初始化操作类型与对应的处理函数映射。
+     * 通过调用initializeMap方法，分别初始化CONCURRENTHASHMAP和OPERATIONS两个映射。
+     **/
     static {
-        // SHA-256 哈希算法
-        CONCURRENTHASHMAP.put(0, t -> {
+        initializeMap(CONCURRENTHASHMAP);
+        initializeMap(OPERATIONS);
+    }
+
+    /**
+     * 初始化编码算法映射表。
+     *
+     * @param map 需要初始化的映射表，键为算法标识，值为对应的编码函数。
+     */
+    private static void initializeMap(Map<Integer, Function<String, String>> map) {
+        /* SHA-256 哈希算法 */
+        map.put(0, t -> {
             try {
                 return SecurityUtil.sha256(t);
             } catch (Exception e) {
-                throw new CommonException("sha256编码错误");
+                throw new CommonException("sha256编码错误", e);
             }
         });
-        // Base64 编码
-        CONCURRENTHASHMAP.put(1, t -> {
+        /* Base64 编码 */
+        map.put(1, t -> {
             try {
                 return SecurityUtil.base64Encode(t);
             } catch (Exception e) {
-                throw new CommonException("base64编码错误");
+                throw new CommonException("base64编码错误", e);
             }
         });
-        // JS 哈希算法
-        CONCURRENTHASHMAP.put(2, t -> {
+        /* JS 哈希算法 */
+        map.put(2, t -> {
             try {
                 int hash = HashUtil.jsHash(t);
                 return Integer.toString(hash);
             } catch (Exception e) {
-                throw new CommonException("jsHash编码错误");
+                throw new CommonException("jsHash编码错误", e);
             }
         });
-        // 混合哈希算法
-        CONCURRENTHASHMAP.put(3, t -> {
+        /* 混合哈希算法 */
+        map.put(3, t -> {
             try {
                 long hash = HashUtil.mixHash(t);
                 return Long.toString(hash);
             } catch (Exception e) {
-                throw new CommonException("mixHash编码错误");
+                throw new CommonException("mixHash编码错误", e);
             }
         });
-        // Punycode 编码
-        CONCURRENTHASHMAP.put(4, t -> {
+        /* Punycode 编码 */
+        map.put(4, t -> {
             try {
                 return PunyCode.encode(t);
             } catch (Exception e) {
-                throw new CommonException("PunyCode编码错误");
+                throw new CommonException("PunyCode编码错误", e);
             }
         });
-        // Rot13 编码
-        CONCURRENTHASHMAP.put(5, t -> {
+        /* Rot13 编码 */
+        map.put(5, t -> {
             try {
                 return Rot.encode13(t);
             } catch (Exception e) {
-                throw new CommonException("Rot13编码错误");
+                throw new CommonException("Rot13编码错误", e);
             }
         });
-        // MD5算法
-        CONCURRENTHASHMAP.put(6, t -> {
+        /* MD5算法（注意：MD5已不安全，仅用于兼容性场景） */
+        map.put(6, t -> {
             try {
                 return SecureUtil.md5(t);
             } catch (Exception e) {
-                throw new CommonException("MD5编码错误");
+                throw new CommonException("MD5编码错误", e);
             }
         });
-        // Base32 编码
-        CONCURRENTHASHMAP.put(7, t -> {
+        /* Base32 编码 */
+        map.put(7, t -> {
             try {
                 return SecurityUtil.base32Encode(t);
             } catch (Exception e) {
-                throw new CommonException("base32编码错误");
+                throw new CommonException("base32编码错误", e);
             }
         });
-        // Base62 编码
-        CONCURRENTHASHMAP.put(8, t -> {
+        /* Base62 编码 */
+        map.put(8, t -> {
             try {
                 return Base62.encode(t);
             } catch (Exception e) {
-                throw new CommonException("Base62编码错误");
+                throw new CommonException("Base62编码错误", e);
             }
         });
-        // SHA-1哈希算法
-        CONCURRENTHASHMAP.put(9, t -> {
+        /* SHA-1哈希算法（注意：SHA-1已不安全，仅用于兼容性场景） */
+        map.put(9, t -> {
             try {
                 return SecureUtil.sha1(t);
             } catch (Exception e) {
-                throw new CommonException("SHA-1哈希算法错误");
+                throw new CommonException("SHA-1哈希算法错误", e);
             }
         });
     }
 
+
     /**
-     * 生成随机字符串验证码
-     * 默认生成6位长度的字符串验证码
+     * {@code getRandomStringCode()}方法实现示例：
+     * <pre>{@code
+     * // 生成默认6位数字验证码
+     * String code = SecurityUtil.getRandomStringCode();
      *
-     * @return 生成的验证码字符串
+     * // 验证码示例输出：345216
+     *
+     * // 方法调用流程说明：
+     * // 1. 调用重载方法{@code getRandomStringCode(6)}
+     * // 2. 使用SecureRandom生成0-9数字
+     * // 3. 通过StringBuilder拼接为字符串返回
+     * }
+     * </pre>
+     *
+     * @return 6位纯数字验证码字符串
      */
     public static String getRandomStringCode() {
         return getRandomStringCode(6);
     }
 
+
     /**
      * 生成指定长度的随机数字字符串
+     * <pre>{@code
+     * // 生成默认6位随机数字字符串
+     * String code = SecurityUtil.getRandomStringCode(6); // 输出类似 "123456"
+     *
+     * // 生成10位随机数字
+     * String longCode = SecurityUtil.getRandomStringCode(10);
+     *
+     * // 参数小于等于0时抛出异常
+     * try {
+     *     String invalidCode = SecurityUtil.getRandomStringCode(-5);
+     * } catch (IllegalArgumentException e) {
+     *     System.out.println(e.getMessage()); // 输出 "长度必须大于0"
+     * }
+     *
+     * // 传入null参数会抛出空指针异常（需确保参数非空）
+     * try {
+     *     String nullCode = SecurityUtil.getRandomStringCode(null);
+     * } catch (NullPointerException e) {
+     *     System.out.println("参数不能为null");
+     * }
+     * }</pre>
      *
      * @param length 指定生成随机数字字符串的长度，不应小于1
      * @return 生成的随机数字字符串
@@ -160,23 +205,52 @@ public class SecurityUtil {
     }
 
     /**
-     * 获取随机的整数验证码
-     * <p>
-     * 该方法用于生成一个指定长度的随机整数验证码，用于用户注册、登录等场景
-     * 验证码是用户进行身份验证的重要信息，因此需要保证其安全性和可靠性
+     * 生成指定长度的随机数字字符串（默认6位）
      *
-     * @return 随机生成的整数验证码
+     * @param length 需大于0的长度参数
+     * @return 随机数字字符串
+     * @throws IllegalArgumentException 长度参数非法
+     *
+     *                                  <pre>{@code
+     *                                                                                                                                     // 默认长度调用
+     *                                                                                                                                     String code6 = SecurityUtil.getRandomStringCode(); // "123456"
+     *
+     *                                                                                                                                     // 自定义长度
+     *                                                                                                                                     String code10 = SecurityUtil.getRandomStringCode(10); // "0987654321"
+     *
+     *                                                                                                                                     // 异常示例
+     *                                                                                                                                     try {
+     *                                                                                                                                         SecurityUtil.getRandomStringCode(-5);
+     *                                                                                                                                     } catch (IllegalArgumentException e) {
+     *                                                                                                                                         System.out.println(e.getMessage()); // 输出"长度必须大于0"
+     *                                                                                                                                     }
+     *                                                                                                                                     }</pre>
      */
     public static Integer getRandomIntCode() {
         return generateRandomIntCode(6);
     }
 
     /**
-     * 生成指定长度的随机整数代码
+     * 生成指定长度的随机数字字符串（默认6位）
      *
-     * @param length 期望生成的随机整数的位数，必须在1到9之间
-     * @return 生成的随机整数
-     * @throws IllegalArgumentException 如果指定的长度不在1到9之间，则抛出此异常
+     * @param length 需大于0的长度参数
+     * @return 随机数字字符串
+     * @throws IllegalArgumentException 长度参数非法
+     *
+     *                                  <pre>{@code
+     *                                                                                                                                     // 默认长度调用
+     *                                                                                                                                     String code6 = SecurityUtil.getRandomStringCode(); // "123456"
+     *
+     *                                                                                                                                     // 自定义长度
+     *                                                                                                                                     String code10 = SecurityUtil.getRandomStringCode(10); // "0987654321"
+     *
+     *                                                                                                                                     // 异常示例
+     *                                                                                                                                     try {
+     *                                                                                                                                         SecurityUtil.getRandomStringCode(-5);
+     *                                                                                                                                     } catch (IllegalArgumentException e) {
+     *                                                                                                                                         System.out.println(e.getMessage()); // 输出"长度必须大于0"
+     *                                                                                                                                     }
+     *                                                                                                                                     }</pre>
      */
     public static Integer generateRandomIntCode(@Nullable Integer length) {
         // 验证输入的长度是否合法
@@ -195,10 +269,22 @@ public class SecurityUtil {
     /**
      * 动态加密方法，根据提供的密钥对明文进行加密
      *
-     * @param plaintext 可能为空的明文字符串，如果为空，则抛出异常
-     * @param key 可能为空的字符密钥，如果为空，则不执行加密操作
+     * @param plaintext 明文字符串（不可为null）
+     * @param key       密钥字符串（仅接受数字字符，不可为null）
      * @return 加密后的字符串
-     * @throws CommonException 如果输入文本为空或加密过程中发生错误，则抛出此异常
+     * @throws CommonException 参数校验失败或加密异常
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 加密示例
+     *                                                                                                 String encrypted = SecurityUtil.dynamicEncrypt("Hello", "123");
+     *
+     *                                                                                                 // 异常处理
+     *                                                                                                 try {
+     *                                                                                                     SecurityUtil.dynamicEncrypt(null, "123");
+     *                                                                                                 } catch (CommonException e) {
+     *                                                                                                     System.out.println(e.getMessage()); // 输出"输入文本或加密代码不能为空"
+     *                                                                                                 }
+     *                                                                                                 }</pre>
      */
     public static String dynamicEncrypt(@Nullable String plaintext, @Nullable String key) {
         // 检查输入文本和加密代码是否为空
@@ -237,7 +323,7 @@ public class SecurityUtil {
             }
         }
         // 将局部变量设置为 null 以帮助垃圾回收
-        list = null;
+
         // 返回最终加密后的文本
         return plaintext;
     }
@@ -245,12 +331,24 @@ public class SecurityUtil {
     /**
      * 动态加密方法，根据提供的密钥对明文进行加密
      *
-     * @param plaintext 可能为空的明文字符串，如果为空，则抛出异常
-     * @param key 可能为空的密钥整数，如果为空，则不执行加密操作
+     * @param plaintext 明文字符串（不可为null）
+     * @param key       密钥字符串（仅接受数字字符，不可为null）
      * @return 加密后的字符串
-     * @throws CommonException 如果输入文本为空或加密过程中发生错误，则抛出此异常
+     * @throws CommonException 参数校验失败或加密异常
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 加密示例
+     *                                                                                                 String encrypted = SecurityUtil.dynamicEncrypt("Hello", "123");
+     *
+     *                                                                                                 // 异常处理
+     *                                                                                                 try {
+     *                                                                                                     SecurityUtil.dynamicEncrypt(null, "123");
+     *                                                                                                 } catch (CommonException e) {
+     *                                                                                                     System.out.println(e.getMessage()); // 输出"输入文本或加密代码不能为空"
+     *                                                                                                 }
+     *                                                                                                 }</pre>
      */
-    public static String dynamicEncrypt(@Nullable String plaintext,@Nullable Integer key) {
+    public static String dynamicEncrypt(@Nullable String plaintext, @Nullable Integer key) {
         // 检查明文是否为空，如果为空，则抛出异常
         if (plaintext == null) {
             throw new CommonException("输入文本不能为空");
@@ -287,13 +385,24 @@ public class SecurityUtil {
     }
 
     /**
-     * 执行基于线程并发的加密操作
-     * 该方法采用 ForkJoin 并行框架来处理加密任务，旨在通过多线程提高加密效率
+     * 线程并发加密方法，使用ForkJoinPool并行执行加密操作
      *
-     * @param plaintext 待加密的明文字符串
-     * @param key 加密密钥字符串，应仅包含数字
-     * @return 加密后的字符串
-     * @throws CommonException 如果输入文本或密钥为空，或密钥包含非数字字符，则抛出此异常
+     * @param plaintext 明文字符串（不可为null）
+     * @param key       密钥字符串（仅接受数字字符，不可为null）
+     * @return 并行加密后的字符串
+     * @throws CommonException 参数校验失败或加密异常
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 并行加密示例
+     *                                                                                                 String encrypted = SecurityUtil.threadConcurrentEncryption("Secret", "1234");
+     *
+     *                                                                                                 // 异常处理
+     *                                                                                                 try {
+     *                                                                                                     SecurityUtil.threadConcurrentEncryption("Data", "ABCD");
+     *                                                                                                 } catch (CommonException e) {
+     *                                                                                                     System.out.println(e.getMessage()); // 输出"加密代码字符串包含非法字符"
+     *                                                                                                 }
+     *                                                                                                 }</pre>
      */
     public static String threadConcurrentEncryption(@Nullable String plaintext, @Nullable String key) {
         // 检查输入文本和加密代码是否为空
@@ -318,7 +427,7 @@ public class SecurityUtil {
         ForkJoinPool forkJoinPool = new ForkJoinPool(parallelism);
 
         // 提交加密任务到 ForkJoinPool，等待结果
-        String result = FORK_JOIN_POOL.invoke(new CipherTask(plaintext, list, OPERATIONS));
+        String result = FORK_JOIN_POOL.invoke(new CipherTask(plaintext, list, CONCURRENTHASHMAP));
 
         // 将局部变量设置为 null 以帮助垃圾回收
         list = null;
@@ -328,16 +437,26 @@ public class SecurityUtil {
     }
 
     /**
-     * 执行基于线程并发的加密操作
-     * 该方法接收一个明文字符串和一个整数密钥，然后使用密钥对明文进行加密
-     * 加密过程是并行执行的，以提高处理效率
+     * 线程并发加密方法，使用ForkJoinPool并行执行加密操作
      *
-     * @param plaintext 可能为空的明文字符串，如果为空将抛出异常
-     * @param key       可能为空的整数密钥，用于加密明文
-     * @return 加密后的密文字符串
-     * @throws CommonException 如果输入文本为空，则抛出此异常
+     * @param plaintext 明文字符串（不可为null）
+     * @param key       密钥字符串（仅接受数字字符，不可为null）
+     * @return 并行加密后的字符串
+     * @throws CommonException 参数校验失败或加密异常
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 并行加密示例
+     *                                                                                                 String encrypted = SecurityUtil.threadConcurrentEncryption("Secret", "1234");
+     *
+     *                                                                                                 // 异常处理
+     *                                                                                                 try {
+     *                                                                                                     SecurityUtil.threadConcurrentEncryption("Data", "ABCD");
+     *                                                                                                 } catch (CommonException e) {
+     *                                                                                                     System.out.println(e.getMessage()); // 输出"加密代码字符串包含非法字符"
+     *                                                                                                 }
+     *                                                                                                 }</pre>
      */
-    public static String threadConcurrentEncryption(@Nullable String plaintext,@Nullable Integer key) {
+    public static String threadConcurrentEncryption(@Nullable String plaintext, @Nullable Integer key) {
         // 检查输入的明文是否为空，如果为空则抛出异常
         if (plaintext == null) {
             throw new CommonException("输入文本不能为空");
@@ -355,17 +474,196 @@ public class SecurityUtil {
         java.util.Collections.reverse(list);
 
         // 使用 ForkJoinPool 进行并行处理，提高加密处理的效率
-        String result = FORK_JOIN_POOL.invoke(new CipherTask(plaintext, list, OPERATIONS));
+        String result = FORK_JOIN_POOL.invoke(new CipherTask(plaintext, list, CONCURRENTHASHMAP));
         return result;
     }
 
     /**
-     * 检查两个密码是否相等
-     * 使用 SHA-256 哈希算法进行常量时间比较，以防止时间攻击
+     * 动态加密给定的明文字符串。
+     * 该方法生成一个随机加密密钥，并使用该密钥对明文进行加密。
      *
-     * @param userPassword 用户输入的密码
-     * @param storedPassword 存储在数据库中的密码
-     * @return 如果密码相等则返回 true，否则返回 false
+     * @param plaintext 可能为null的明文字符串，如果为null，则抛出异常。
+     * @return 返回一个包含加密密钥和加密后密码的SecureData对象。
+     * @throws CommonException 如果输入的明文为空，则抛出此异常。
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 正常使用示例：动态加密明文字符串
+     *                                                                                                 SecureData encryptedData = SecurityUtil.dynamicEncrypt("Hello, World!");
+     *                                                                                                 System.out.println("加密后的密码: " + encryptedData.getEncryptedPassword());
+     *                                                                                                 System.out.println("加密密钥: " + encryptedData.getEncryptionKey());
+     *
+     *                                                                                                 // 参数校验失败示例（明文为空）
+     *                                                                                                 try {
+     *                                                                                                     SecurityUtil.dynamicEncrypt(null);
+     *                                                                                                 } catch (CommonException e) {
+     *                                                                                                     System.out.println(e.getMessage());
+     *                                                                                                     // 输出"输入文本不能为空"
+     *                                                                                                 }
+     *                                                                                                 }</pre>
+     */
+    public static SecureData dynamicEncrypt(@Nullable String plaintext) {
+
+        // 检查明文是否为空，如果为空则抛出异常
+        if (plaintext == null) {
+            throw new CommonException("输入文本不能为空");
+        }
+
+        // 生成一个随机的加密密钥
+        String encryptionKey = getRandomStringCode();
+
+        // 使用生成的加密密钥对明文进行动态加密
+        String encryptedPassword = dynamicEncrypt(plaintext, encryptionKey);
+
+        // 创建并返回一个包含加密后密码和加密密钥的EncryptedData对象
+        return new SecureData(encryptedPassword, encryptionKey);
+    }
+
+    /**
+     * 使用自定义密钥长度动态加密明文。
+     * 该方法生成一个指定长度的随机加密密钥，并使用该密钥对明文进行加密。
+     *
+     * @param plaintext    待加密的明文字符串，如果为null，则抛出异常。
+     * @param numberLength 指定的密钥长度，如果为null，则使用默认长度。
+     * @return 返回一个包含加密密钥和加密后密码的SecureData对象。
+     * @throws CommonException 如果输入的明文为空，则抛出此异常。
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 正常使用示例：动态加密明文字符串，指定密钥长度为8
+     *                                                                                                 SecureData encryptedData = SecurityUtil.dynamicEncryptWithCustomKeyLength("Hello, World!", 8);
+     *                                                                                                 System.out.println("加密后的密码: " + encryptedData.getEncryptedPassword());
+     *                                                                                                 System.out.println("加密密钥: " + encryptedData.getEncryptionKey());
+     *
+     *                                                                                                 // 参数校验失败示例（明文为空）
+     *                                                                                                 try {
+     *                                                                                                     SecurityUtil.dynamicEncryptWithCustomKeyLength(null, 8);
+     *                                                                                                 } catch (CommonException e) {
+     *                                                                                                     System.out.println(e.getMessage());
+     *                                                                                                     // 输出"输入文本不能为空"
+     *                                                                                                 }
+     *
+     *                                                                                                 // 使用默认密钥长度
+     *                                                                                                 SecureData defaultKeyLengthData = SecurityUtil.dynamicEncryptWithCustomKeyLength("Hello, World!", null);
+     *                                                                                                 System.out.println("加密后的密码: " + defaultKeyLengthData.getEncryptedPassword());
+     *                                                                                                 System.out.println("加密密钥: " + defaultKeyLengthData.getEncryptionKey());
+     *                                                                                                 }</pre>
+     */
+    public static SecureData dynamicEncryptWithCustomKeyLength(@Nullable String plaintext, @Nullable Integer numberLength) {
+
+        // 检查输入的明文是否为空
+        if (plaintext == null) {
+            throw new CommonException("输入文本不能为空");
+        }
+
+        // 根据指定的数字长度生成一个随机密钥，如果未提供，则使用默认长度
+        String encryptionKey = getRandomStringCode(numberLength);
+
+        // 使用生成的密钥加密明文
+        String encryptedPassword = dynamicEncrypt(plaintext, encryptionKey);
+
+        // 返回一个包含加密密文和密钥的对象
+        return new SecureData(encryptedPassword, encryptionKey);
+    }
+
+    /**
+     * 使用多线程并发加密的方式对明文进行加密。
+     * 该方法生成一个随机加密密钥，并使用该密钥对明文进行加密。
+     *
+     * @param plaintext 可能为null的明文字符串，如果为null，则抛出异常。
+     * @return 返回一个包含加密密钥和加密后密码的SecureData对象。
+     * @throws CommonException 如果输入的明文为空，则抛出此异常。
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 正常使用示例：多线程并发加密明文字符串
+     *                                                                                                 SecureData encryptedData = SecurityUtil.threadConcurrentEncryption("Hello, World!");
+     *                                                                                                 System.out.println("加密后的密码: " + encryptedData.getEncryptedPassword());
+     *                                                                                                 System.out.println("加密密钥: " + encryptedData.getEncryptionKey());
+     *
+     *                                                                                                 // 参数校验失败示例（明文为空）
+     *                                                                                                 try {
+     *                                                                                                     SecurityUtil.threadConcurrentEncryption(null);
+     *                                                                                                 } catch (CommonException e) {
+     *                                                                                                     System.out.println(e.getMessage());
+     *                                                                                                     // 输出"输入文本不能为空"
+     *                                                                                                 }
+     *                                                                                                 }</pre>
+     */
+    public static SecureData threadConcurrentEncryption(@Nullable String plaintext) {
+        // 检查明文是否为空，如果为空，则抛出异常
+        if (plaintext == null) {
+            throw new CommonException("输入文本不能为空");
+        }
+
+        // 生成一个随机的加密密钥
+        String encryptionKey = getRandomStringCode();
+
+        // 使用生成的密钥对明文进行加密
+        String encryptedPassword = threadConcurrentEncryption(plaintext, encryptionKey);
+
+        // 返回包含加密密文和加密密钥的EncryptedData对象
+        return new SecureData(encryptedPassword, encryptionKey);
+    }
+
+    /**
+     * 使用自定义密钥长度对文本进行线程并发加密。
+     * 该方法生成一个指定长度的随机加密密钥，并使用该密钥对明文进行加密。
+     *
+     * @param plaintext    待加密的明文字符串，如果为null，则抛出异常。
+     * @param numberLength 指定的密钥长度，如果为null，则使用默认长度。
+     * @return 返回一个包含加密密钥和加密后密码的SecureData对象。
+     * @throws CommonException 如果输入的明文为空，则抛出此异常。
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 正常使用示例：多线程并发加密明文字符串，指定密钥长度为8
+     *                                                                                                 SecureData encryptedData = SecurityUtil.threadConcurrentEncryptionWithCustomKeyLength("Hello, World!", 8);
+     *                                                                                                 System.out.println("加密后的密码: " + encryptedData.getEncryptedPassword());
+     *                                                                                                 System.out.println("加密密钥: " + encryptedData.getEncryptionKey());
+     *
+     *                                                                                                 // 参数校验失败示例（明文为空）
+     *                                                                                                 try {
+     *                                                                                                     SecurityUtil.threadConcurrentEncryptionWithCustomKeyLength(null, 8);
+     *                                                                                                 } catch (CommonException e) {
+     *                                                                                                     System.out.println(e.getMessage());
+     *                                                                                                     // 输出"输入文本不能为空"
+     *                                                                                                 }
+     *
+     *                                                                                                 // 使用默认密钥长度
+     *                                                                                                 SecureData defaultKeyLengthData = SecurityUtil.threadConcurrentEncryptionWithCustomKeyLength("Hello, World!", null);
+     *                                                                                                 System.out.println("加密后的密码: " + defaultKeyLengthData.getEncryptedPassword());
+     *                                                                                                 System.out.println("加密密钥: " + defaultKeyLengthData.getEncryptionKey());
+     *                                                                                                 }</pre>
+     */
+    public static SecureData threadConcurrentEncryptionWithCustomKeyLength(@Nullable String plaintext, @Nullable Integer numberLength) {
+
+        // 检查输入的明文是否为空，如果为空则抛出异常
+        if (plaintext == null) {
+            throw new CommonException("输入文本不能为空");
+        }
+
+        // 生成加密密钥，如果指定了密钥长度，则生成对应长度的密钥；否则生成默认长度的密钥
+        String encryptionKey = getRandomStringCode(numberLength);
+
+        // 使用生成的密钥对明文进行加密
+        String encryptedPassword = threadConcurrentEncryption(plaintext, encryptionKey);
+
+        // 返回包含加密后数据和加密密钥的对象
+        return new SecureData(encryptedPassword, encryptionKey);
+    }
+
+    /**
+     * 验证密码是否匹配的常量时间比较方法
+     *
+     * @param userPassword   用户输入的密码（可为null）
+     * @param storedPassword 数据库存储的密码（可为null）
+     * @return 密码是否匹配的布尔值
+     * @throws CommonException SHA-256算法初始化失败
+     *
+     *                         <pre>{@code
+     *                                                                                                 // 正确验证
+     *                                                                                                 boolean match = SecurityUtil.verifyPassword("pass123", "pass123");
+     *
+     *                                                                                                 // 处理空值
+     *                                                                                                 boolean nullCheck = SecurityUtil.verifyPassword(null, "pass123"); // 返回false
+     *                                                                                                 }</pre>
      */
     public static Boolean verifyPassword(@Nullable String userPassword, @Nullable String storedPassword) {
         // 检查是否为同一个对象
@@ -518,4 +816,5 @@ public class SecurityUtil {
     private static String sha256(String text) {
         return SecureUtil.sha256(text);
     }
+
 }

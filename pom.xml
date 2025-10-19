@@ -8,12 +8,17 @@
         <version>3.3.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+
+    <!-- 项目信息-->
     <groupId>com.lby.result</groupId>
     <artifactId>result-spring-boot-starter</artifactId>
-    <version>3.3.5</version>
+    <!-- 项目版本信息-->
+    <version>3.4.5</version>
     <name>result-spring-boot-starter</name>
     <description>result-spring-boot-starter</description>
+
     <url/>
+
     <licenses>
         <license/>
     </licenses>
@@ -34,6 +39,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- MyBatis Plus 依赖，用于支持MyBatis Plus，标记为可选 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>3.5.7</version>
             <optional>true</optional>
         </dependency>
         <!-- Sa-Token Redis依赖，用于支持Redis的访问控制，标记为可选 -->
@@ -60,6 +72,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+            <optional>true</optional>
         </dependency>
         <!-- Spring Boot 核心依赖，标记为可选 -->
         <dependency>
@@ -102,6 +115,28 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
             <optional>true</optional>
+        </dependency>
+        <!-- 阿里云OSS依赖，用于访问阿里云OSS-->
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+            <version>3.10.2</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- Apache Commons Lang3依赖，用于提供Apache Commons Lang3-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.9</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- JetBrains 注解依赖，用于提供JetBrains注解-->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>13.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

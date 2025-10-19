@@ -1,4 +1,6 @@
 com.lby.result.config.ResultAutoConfig
+com.lby.result.config.AliOssProperties
+com.lby.result.config.OssConfiguration
 com.lby.result.config.WebMvcConfiguration
 com.lby.result.config.BeanConverterProperties
 com.lby.result.utils.BeanTransformer
